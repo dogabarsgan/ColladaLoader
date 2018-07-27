@@ -1,0 +1,80 @@
+################################################################################
+# Platform specific flags are maintained here
+################################################################################
+# Instructions:
+#   Include this file as the first line in your Makefile.
+#   Create a default target called "default_target".
+#   Define any macros needed (see Macros To Define below).
+################################################################################
+# Input Variables:
+#   platform (string specifing which platform you want
+#             to compile for)
+#   debug (debugging mode on/off, default is 0/off)
+################################################################################
+# Macros Defined:
+#   CC (name of the c compiler)
+#   CXX (name of the c++ compiler)
+#   CFLAGS (flags for the c compiler)
+#   CXXFLAGS (flags for the C++ compiler)
+#   OPTS (debugging/optimization options)
+#   AR (library linker name and flags)
+################################################################################
+# Macros To Define:
+#   CLEAN (files to remove in a "make clean")
+#   DEFS (-D directives)
+#   INCL (include commands)
+################################################################################
+
+
+# default target
+default: default_target
+
+# available platforms
+PLATFORMS = "LINUX_gcc MACOS_gcc"
+# default platform
+ifndef PLATFORM
+  PLATFORM = "LINUX_gcc"
+endif
+
+# check platform
+ifneq (${platform}, $(filter ${platform}, LINUX_gcc MACOS_gcc))
+  ERROR_MSG = Error. Platform "${platform}" is not supported. \
+							Available platforms: ${PLATFORMS}
+  $(error $(ERROR_MSG))
+endif
+
+ifndef debug
+  debug = 0
+endif
+
+#Compiler Options
+CC  = gcc
+CFLAGS = -Wall -Werror
+CXX = g++ -std=c++14
+CXXFLAGS := -Wall -Werror -Wno-unused-local-typedefs
+ifeq (${debug}, 0)
+  OPTS = -O3
+else
+  OPTS = -ggdb -O0
+endif
+OPTS +=
+AR = ar rc
+RM = rm
+
+# set platform-specific variables
+
+# clean target
+.PHONY: clean
+clean::
+	${RM} -rf ${CLEAN}
+
+.SUFFIXES: .o .c .cpp
+
+#c++ compile rule
+.cpp.o:
+	${CXX} -c ${OPTS} ${CXXFLAGS} ${DEFS} ${INCL} $< -o $@
+
+#c compile rule
+.c.o:
+	${CC} -c ${OPTS} ${CFLAGS} ${DEFS} ${INCL} $< -o $@
+
